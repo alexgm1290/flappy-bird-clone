@@ -9,26 +9,6 @@
 import SpriteKit
 import GameplayKit
 
-
-extension SKLabelNode {
-    convenience init?(fontNamed font: String, andText text: String, andSize size: CGFloat, withShadow  shadowText: String, andColor shadow: UIColor) {
-        self.init(fontNamed: font)
-        self.text = text
-        self.fontSize = size
-        
-        let shadowNode = SKLabelNode(fontNamed: font)
-        shadowNode.text = shadowText
-        shadowNode.zPosition = self.zPosition - 1
-        shadowNode.fontColor = shadow
-        // Just create a little offset from the main text label
-        shadowNode.position = CGPoint(x: 2, y: -2)
-        shadowNode.fontSize = self.fontSize
-        shadowNode.alpha = 0.5
-        
-        self.addChild(shadowNode)
-    }
-}
-
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //MARK: - Variables
@@ -37,19 +17,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var ground = SKSpriteNode()
     var upwardPipe = SKSpriteNode()
     var downwardPipe = SKSpriteNode()
-    
+    var scoringGap = SKNode()
     var gameScoreLabel = SKLabelNode()
     var gameOverLabel = SKLabelNode()
     let gameScoreLabelShadow = SKLabelNode()
     
     var score = 0
+    var gapHeight : CGFloat = 0
+    var pipeOffset : CGFloat = 0
     var gameOver = false
     var timer = Timer()
     
     var fontName = "Gamer"
     var fontSize : CGFloat = 120
     var fontZPosition : CGFloat = 5
-    
     
     enum ColliderType : UInt32 {
         case Bird = 1
@@ -105,7 +86,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             i += 1
         }
-        
     }
     
     func setupBird() {
@@ -138,8 +118,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let movement = CGFloat.random(in: 0...self.frame.height / 2)
         let pipeOffset = movement - self.frame.height / 4
         
+        // Setup Sprites
         let pipeTexture = SKTexture(imageNamed: "pipe")
-        
+
         upwardPipe = SKSpriteNode(texture: pipeTexture)
         upwardPipe.position = CGPoint(x: self.size.width, y: self.frame.midY - upwardPipe.size.height / 2 - gapHeight / 2 + pipeOffset)
         
@@ -147,38 +128,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         downwardPipe.yScale = yScale * -1
         downwardPipe.position = CGPoint(x: self.size.width, y: self.frame.midY + upwardPipe.size.height / 2 + gapHeight / 2 + pipeOffset)
         
-        let moveLeft = SKAction.move(by: CGVector(dx: -2 * self.size.width, dy: 0), duration: TimeInterval(self.frame.width / 100))
-        
-        upwardPipe.run(SKAction.sequence([moveLeft, SKAction.removeFromParent()]))
-        downwardPipe.run(SKAction.sequence([moveLeft, SKAction.removeFromParent()]))
-        
+        // Setup Physics
         upwardPipe.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upwardPipe.size.width, height: upwardPipe.size.height))
         upwardPipe.physicsBody?.isDynamic = false
-        downwardPipe.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: downwardPipe.size.width, height: downwardPipe.size.height))
-        downwardPipe.physicsBody?.isDynamic = false
-        
         upwardPipe.physicsBody?.contactTestBitMask = ColliderType.Object.rawValue
         upwardPipe.physicsBody?.categoryBitMask = ColliderType.Object.rawValue
         upwardPipe.physicsBody?.collisionBitMask = ColliderType.Object.rawValue
         
+        downwardPipe.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: downwardPipe.size.width, height: downwardPipe.size.height))
+        downwardPipe.physicsBody?.isDynamic = false
         downwardPipe.physicsBody?.contactTestBitMask = ColliderType.Object.rawValue
         downwardPipe.physicsBody?.categoryBitMask = ColliderType.Object.rawValue
         downwardPipe.physicsBody?.collisionBitMask = ColliderType.Object.rawValue
-        
-        self.addChild(upwardPipe)
-        self.addChild(downwardPipe)
-        
-        let scoringGap = SKNode()
+
+        // Setup scoring gap
+        scoringGap = SKNode()
         scoringGap.position = CGPoint(x: self.size.width, y: self.frame.midY + pipeOffset)
         scoringGap.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upwardPipe.size.width, height: gapHeight))
         scoringGap.physicsBody?.isDynamic = false
-        scoringGap.run(SKAction.sequence([moveLeft, SKAction.removeFromParent()]))
         scoringGap.physicsBody?.contactTestBitMask = ColliderType.Bird.rawValue
         scoringGap.physicsBody?.categoryBitMask = ColliderType.Gap.rawValue
         scoringGap.physicsBody?.collisionBitMask = ColliderType.Gap.rawValue
         
-        self.addChild(scoringGap)
+        // Setup Pipes animation
+        let moveLeft = SKAction.move(by: CGVector(dx: -2 * self.size.width, dy: 0), duration: TimeInterval(self.frame.width / 100))
+        upwardPipe.run(SKAction.sequence([moveLeft, SKAction.removeFromParent()]))
+        downwardPipe.run(SKAction.sequence([moveLeft, SKAction.removeFromParent()]))
+        scoringGap.run(SKAction.sequence([moveLeft, SKAction.removeFromParent()]))
+
+        upwardPipe.speed = 0
+        downwardPipe.speed = 0
+        scoringGap.speed = 0
         
+        // Add nodes to scene
+        self.addChild(scoringGap)
+        self.addChild(upwardPipe)
+        self.addChild(downwardPipe)
     }
     
     func setupScoreLabel() {
@@ -197,12 +182,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         gameScoreLabelShadow.position = CGPoint(x: gameScoreLabel.position.x + 2, y: gameScoreLabel.position.y - 2)
     }
     
-    //MARK: - Class Methods
+    func animateScore() {
+        // Add a little visual feedback for the score increment
+        gameScoreLabel.run(SKAction.sequence([SKAction.scale(to: 1.2, duration:TimeInterval(0.1)), SKAction.scale(to: 1.0, duration:TimeInterval(0.1))]))
+        gameScoreLabelShadow.run(SKAction.sequence([SKAction.scale(to: 1.2, duration:TimeInterval(0.1)), SKAction.scale(to: 1.0, duration:TimeInterval(0.1))]))
+        
+        let upGameScoreLabel = gameScoreLabel.copy() as! SKLabelNode
+        upGameScoreLabel.fontColor = UIColor(red: 0.98, green: 0.23, blue: 0.11, alpha: 0.8)
+        upGameScoreLabel.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: 20), duration: 0.1), SKAction.fadeOut(withDuration: 0.1)]))
+        self.addChild(upGameScoreLabel)
+    }
     
-    override func didMove(to view: SKView) {
-        
-        physicsWorld.contactDelegate = self
-        
+    func setupGame() {
         setupBackground()
         setupGround()
         setupBird()
@@ -216,17 +207,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(gameScoreLabelShadow)
     }
     
+    //MARK: - Class Methods
+    
+    override func didMove(to view: SKView) {
+        
+        physicsWorld.contactDelegate = self
+        setupGame()
+    }
+    
     func didBegin(_ contact: SKPhysicsContact) {
         
         if gameOver == false {
             if contact.bodyA.categoryBitMask == ColliderType.Gap.rawValue || contact.bodyB.categoryBitMask == ColliderType.Gap.rawValue {
                 score += 1
+                
+                animateScore()
+                
             } else {
                 self.speed = 0
                 score = 0
                 timer.invalidate()
-                gameOver = true
+                gameOver.toggle()
                 
+                //MARK: Game Over View
                 if let gameOverLabelUnwrapped = SKLabelNode(fontNamed: fontName, andText: "Game Over", andSize: fontSize, withShadow: "Game Over", andColor: .black) {
                     gameOverLabel = gameOverLabelUnwrapped
                     gameOverLabel.position = CGPoint(x: self.frame.midX, y: self.frame.midY)
@@ -241,44 +244,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self.addChild(gameOverBackground)
             }
         }
-        
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         
         if gameOver == false {
-            bird.physicsBody?.isDynamic = true
-            bird.physicsBody?.velocity = CGVector(dx: 0, dy: 0)
-            bird.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 130))
             
             setupScoreLabel()
             
+            bird.physicsBody?.isDynamic = true
+            bird.physicsBody?.velocity = CGVector(dx: 0, dy: 150)
+            bird.physicsBody?.applyImpulse(CGVector(dx: 0, dy: 130))
+            
+            // Setup Pipes Animation
+            upwardPipe.speed = 1
+            downwardPipe.speed = 1
+            scoringGap.speed = 1
+            
+            
         } else {
-            gameOver = false
+            gameOver.toggle()
             score = 0
             self.speed = 1
             self.removeAllChildren()
             
-            setupBackground()
-            setupGround()
-            setupBird()
-            
-            timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { (timer) in
-                self.setupPipe()
-            }
-            
-            setupScoreLabel()
-            self.addChild(gameScoreLabel)
-            self.addChild(gameScoreLabelShadow)
+            setupGame()
         }
     }
     
     override func update(_ currentTime: TimeInterval) {
         
+        if gameOver == false {
+            let value = bird.physicsBody!.velocity.dy * (bird.physicsBody!.velocity.dy < 0 ? 0.003 : 0.001)
+            bird.zRotation = min(max(-1, value), 0.5)
+        } else {
+            scene?.speed = 0
+        }
     }
-    
-    
-    
 }
 
 

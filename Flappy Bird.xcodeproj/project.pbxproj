@@ -16,6 +16,7 @@
 		BC967BC621BEE731007EC9AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC967BC521BEE731007EC9AF /* Assets.xcassets */; };
 		BC967BC921BEE731007EC9AF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BC967BC721BEE731007EC9AF /* LaunchScreen.storyboard */; };
 		BCA8917421C3116700E2EA6D /* GamerFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BCA8917321C3116300E2EA6D /* GamerFont.ttf */; };
+		BCA8917621C4049600E2EA6D /* TextShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCA8917521C4049600E2EA6D /* TextShadow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		BC967BC821BEE731007EC9AF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		BC967BCA21BEE731007EC9AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BCA8917321C3116300E2EA6D /* GamerFont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = GamerFont.ttf; sourceTree = "<group>"; };
+		BCA8917521C4049600E2EA6D /* TextShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextShadow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 				BC967BBA21BEE72F007EC9AF /* GameScene.sks */,
 				BC967BBC21BEE72F007EC9AF /* Actions.sks */,
 				BC967BBE21BEE72F007EC9AF /* GameScene.swift */,
+				BCA8917521C4049600E2EA6D /* TextShadow.swift */,
 				BC967BC021BEE72F007EC9AF /* GameViewController.swift */,
 				BC967BC221BEE72F007EC9AF /* Main.storyboard */,
 				BC967BC521BEE731007EC9AF /* Assets.xcassets */,
@@ -152,6 +155,7 @@
 			files = (
 				BC967BBF21BEE72F007EC9AF /* GameScene.swift in Sources */,
 				BC967BC121BEE72F007EC9AF /* GameViewController.swift in Sources */,
+				BCA8917621C4049600E2EA6D /* TextShadow.swift in Sources */,
 				BC967BB921BEE72F007EC9AF /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
